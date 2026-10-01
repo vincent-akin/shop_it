@@ -5,7 +5,7 @@ export async function createClient() {
   return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
       getAll: () => c.getAll(),
-      setAll: (l) => { try { l.forEach(({ name, value, options }) => c.set(name, value, options)) } catch {} },
+      setAll: (l: { name: string; value: string; options?: any }[]) => { try { l.forEach(({ name, value, options }) => c.set(name, value, options)) } catch {} },
     },
   })
 }
