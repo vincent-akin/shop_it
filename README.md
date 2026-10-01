@@ -1,4 +1,4 @@
-# Shop_It v1
+# Shop_It
 
 Foundation for the Shop_It store (Next.js + Supabase + Mailgun + Google OAuth).
 
