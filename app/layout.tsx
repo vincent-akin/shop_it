@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <nav className="nav" aria-label="Main">
                 <Link className="on" href="/" title="Home"><i>🏠</i><span>Home</span></Link>
                 <Link href="/#shop" title="Products"><i>🛍️</i><span>Products</span></Link>
-                {!inApp && <Link href="/orders" title="My orders"><i>📦</i><span>My orders</span></Link>}
+                <Link href="/orders" title="My orders"><i>📦</i><span>My orders</span></Link>
                 {isAdmin && <Link href="/admin" title="Admin"><i>⚙️</i><span>Admin</span></Link>}
               </nav>
               <div className="promo">🚚<p>Free delivery on orders above ₦150,000</p>

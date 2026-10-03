@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { AddButton, CartToggle } from '@/components/Cart'
+import { NativeSignIn } from '@/components/NativeSignIn'
 import { naira } from '@/lib/money'
 
 const look: Record<string, [number, string]> = { fashion: [12, '👕'], electronics: [215, '🎧'], laptops: [260, '💻'], phones: [170, '📱'] }
@@ -30,7 +31,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
         <div>
           <h1>Everything you need, delivered to you</h1>
           <p>Phones, laptops, electronics and fashion in one place.</p>
-          {!user && !inApp && <a className="gbtn" href="/auth/signin">Sign in with Google</a>}
+          {!user && (inApp ? <NativeSignIn /> : <a className="gbtn" href="/auth/signin">Sign in with Google</a>)}
         </div>
         <div className="art" aria-hidden="true"><span className="b2">❤️</span><span className="big">🛍️</span><span className="b1">👟</span></div>
       </section>
