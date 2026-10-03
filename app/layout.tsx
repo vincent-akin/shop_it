@@ -1,21 +1,24 @@
 import './globals.css'
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { CartProvider, CartPanel } from '@/components/Cart'
 import { ThemeToggle } from '@/components/Client'
+import { Footer } from '@/components/Footer'
 
 export const metadata: Metadata = { title: 'Shop_It', description: 'Phones, laptops, electronics and fashion.' }
 const themeInit = `try{var t=localStorage.getItem('shopit_theme');if(t)document.documentElement.dataset.theme=t}catch(e){}`
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const inApp = ((await headers()).get('user-agent') ?? '').includes('ShopItApp')   // set by the mobile app wrapper
   const sb = await createClient()
   const { data: { user } } = await sb.auth.getUser()
   const isAdmin = user ? (await sb.from('profiles').select('role').eq('id', user.id).single()).data?.role === 'admin' : false
   const name = user?.user_metadata?.full_name?.split(' ')[0]
   return (
     <html lang="en" suppressHydrationWarning>
-      <head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /><script dangerouslySetInnerHTML={{ __html: themeInit }} /></head>
+      <head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /><meta name="theme-color" content="#f9735b" /><script dangerouslySetInnerHTML={{ __html: themeInit }} /></head>
       <body>
         <CartProvider>
           <div className="app">
@@ -27,17 +30,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <nav className="nav" aria-label="Main">
                 <Link className="on" href="/" title="Home"><i>🏠</i><span>Home</span></Link>
                 <Link href="/#shop" title="Products"><i>🛍️</i><span>Products</span></Link>
-                <Link href="/orders" title="My orders"><i>📦</i><span>My orders</span></Link>
+                {!inApp && <Link href="/orders" title="My orders"><i>📦</i><span>My orders</span></Link>}
                 {isAdmin && <Link href="/admin" title="Admin"><i>⚙️</i><span>Admin</span></Link>}
               </nav>
               <div className="promo">🚚<p>Free delivery on orders above ₦150,000</p>
-                {user ? <form action="/auth/signout" method="post"><button className="btn sm">Sign out</button></form> : <a className="btn sm" href="/auth/signin">Sign in</a>}
+                {user ? <form action="/auth/signout" method="post"><button className="btn sm">Sign out</button></form> : !inApp && <a className="btn sm" href="/auth/signin">Sign in</a>}
               </div>
               <ThemeToggle />
             </aside>
             <main>{children}</main>
             <CartPanel name={name} email={user?.email} online={!!process.env.PAYSTACK_SECRET_KEY} />
           </div>
+          <Footer signedIn={!!user} inApp={inApp} />
         </CartProvider>
       </body>
     </html>
