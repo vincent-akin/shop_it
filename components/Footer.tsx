@@ -14,10 +14,10 @@ export function Footer({ signedIn, inApp }: { signedIn: boolean; inApp: boolean 
           <p style={{ color: 'var(--mut)', margin: '10px 0 0' }}>Phones, laptops, electronics and fashion, delivered to you.</p>
         </div>
         <nav aria-label="Shop"><h4>Shop</h4>{CATS.map(([s, n]) => <Link key={s} href={`/?c=${s}`}>{n}</Link>)}</nav>
-        {!inApp && <nav aria-label="Account"><h4>Account</h4>
+        <nav aria-label="Account"><h4>Account</h4>
           <Link href="/orders">My orders</Link>
-          {signedIn ? <form action="/auth/signout" method="post"><button style={{ color: 'var(--mut)', padding: '3px 0' }}>Sign out</button></form> : <a href="/auth/signin">Sign in</a>}
-        </nav>}
+          {signedIn ? <form action="/auth/signout" method="post"><button style={{ color: 'var(--mut)', padding: '3px 0' }}>Sign out</button></form> : !inApp && <a href="/auth/signin">Sign in</a>}
+        </nav>
         <nav aria-label="Help"><h4>Help</h4>
           <a href="https://wa.me/2349068877567" target="_blank" rel="noopener noreferrer">WhatsApp: +234 906 887 7567</a>
           <a href="tel:+2349068877567">Call: +234 906 887 7567</a>
