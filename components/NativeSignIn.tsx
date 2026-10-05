@@ -10,21 +10,31 @@ export function NativeSignIn() {
   if (!native) return null
   async function go() {
     setBusy(true); setErr('')
+    let stage = 'start'
     try {
-      const SL = (window as any).Capacitor.Plugins.SocialLogin
+      const SL = (window as any).Capacitor?.Plugins?.SocialLogin
+      if (!SL) throw new Error('The Google sign-in plugin is missing from this app build')
+      const webClientId = process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID
+      if (!webClientId) throw new Error('NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID is empty in this deployment')
+      stage = 'setup'
       await SL.initialize({ google: {
-        webClientId: process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+        webClientId,
         iOSClientId: process.env.NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-        iOSServerClientId: process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+        iOSServerClientId: webClientId,
         mode: 'online',
       } })
+      stage = 'google'
       const res = await SL.login({ provider: 'google', options: { scopes: ['profile', 'email'] } })
       const token = res?.result?.idToken
-      if (!token) throw new Error('No Google token')
+      if (!token) throw new Error('Google returned no ID token')
+      stage = 'supabase'
       const { error } = await createClient().auth.signInWithIdToken({ provider: 'google', token })
       if (error) throw error
       location.reload()
-    } catch { setErr('Google sign-in failed. Please try again.'); setBusy(false) }
+    } catch (e: any) {
+      setErr(`Sign-in failed at "${stage}": ${e?.message || e?.code || JSON.stringify(e)}`)
+      setBusy(false)
+    }
   }
   return (
     <>
