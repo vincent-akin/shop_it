@@ -24,7 +24,7 @@ export function NativeSignIn() {
         mode: 'online',
       } })
       stage = 'google'
-      const res = await SL.login({ provider: 'google', options: { scopes: ['profile', 'email'] } })
+      const res = await SL.login({ provider: 'google', options: {} })   // no scopes: the default sign-in already returns the email and profile in the ID token
       const token = res?.result?.idToken
       if (!token) throw new Error('Google returned no ID token')
       stage = 'supabase'
