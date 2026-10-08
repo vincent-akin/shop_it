@@ -29,7 +29,7 @@ export const CartToggle = () => {
   return <button className="ic cartbtn" type="button" aria-label="Open cart" onClick={() => c.setOpen(true)}>🛒<span className="badge">{c.items.reduce((s: number, i: Item) => s + i.qty, 0)}</span></button>
 }
 
-export function CartPanel({ name, email, online }: { name?: string; email?: string; online: boolean }) {
+export function CartPanel({ name, email, online, avatar, active, recent, bellHref }: { name?: string; email?: string; online: boolean; avatar?: string; active?: number; recent?: any[]; bellHref?: string }) {
   const c = useContext(Ctx), router = useRouter()
   const [err, setErr] = useState(''), [busy, setBusy] = useState(false)
   const [method, setMethod] = useState(online ? 'online' : 'cod')
@@ -47,7 +47,16 @@ export function CartPanel({ name, email, online }: { name?: string; email?: stri
   }
   return (
     <aside className={'cart card' + (c.open ? ' open' : '')} aria-label="Cart">
-      <div className="who"><span className="av" aria-hidden="true">👤</span><b>Hi, {name || 'Guest'}</b></div>
+      <div className="who">
+        {avatar ? <img className="av" src={avatar} alt="" style={{ objectFit: 'cover' }} /> : <span className="av" aria-hidden="true">👤</span>}
+        <b>Hi, {name || 'Guest'}</b>
+        {email && <a className="ic" href={bellHref ?? '/orders'} aria-label={`${active ?? 0} active orders`} style={{ width: 40, height: 40, textDecoration: 'none' }}>🔔{!!active && <span className="badge">{active}</span>}</a>}
+      </div>
+      <div className="wal">
+        <small>{email ? 'Active orders' : 'Free delivery'}</small>
+        <strong>{email ? active ?? 0 : 'Above ₦150,000'}</strong>
+        {email && <a className="gbtn" href={bellHref ?? '/orders'}>Track orders</a>}
+      </div>
       <h2>Your cart <button className="ic x" type="button" aria-label="Close cart" onClick={() => c.setOpen(false)}>✕</button></h2>
       {c.items.length === 0 && <p className="sum">Your cart is empty. Add a product to get started.</p>}
       {c.items.map((i: Item) => (
@@ -75,6 +84,18 @@ export function CartPanel({ name, email, online }: { name?: string; email?: stri
           {email && online && <label><input type="checkbox" checked={method === 'cod'} onChange={e => setMethod(e.target.checked ? 'cod' : 'online')} /> Pay on delivery instead</label>}
           <button className="btn" disabled={busy}>{busy ? 'Please wait…' : method === 'online' ? 'Pay now' : 'Place order (pay on delivery)'}</button>
         </form>
+      )}
+      {!!recent?.length && (
+        <>
+          <h2>Recent orders</h2>
+          {recent.map(o => (
+            <a key={o.order_number} className="tp" href={bellHref ?? '/orders'} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="t" style={{ ['--h' as any]: 12 }} aria-hidden="true">📦</div>
+              <div><b>{o.order_items?.[0]?.name ?? o.order_number}{o.order_items?.length > 1 ? ` +${o.order_items.length - 1}` : ''}</b><small>{new Date(o.created_at).toLocaleDateString('en-NG')} · {o.status}</small></div>
+              <strong>{naira(o.total_kobo)}</strong>
+            </a>
+          ))}
+        </>
       )}
     </aside>
   )

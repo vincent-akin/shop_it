@@ -17,6 +17,7 @@ export default async function Account() {
         <>
           <p><strong>{user.user_metadata?.full_name ?? 'Signed in'}</strong><br /><small>{user.email}</small></p>
           <Link className="btn sm" href="/orders">My orders</Link>
+          <Link className="btn sm" href="/settings">Edit profile</Link>
           {role === 'admin' && <Link className="btn sm" href="/admin">Admin</Link>}
           <form action="/auth/signout" method="post"><button className="btn sm">Sign out</button></form>
         </>
