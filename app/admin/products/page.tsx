@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin'
 import { saveProduct } from '../actions'
+import { AdminTabs } from '@/components/AdminTabs'
 import { ImageField } from '@/components/ImageField'
 
 function Fields({ p }: { p?: any }) {
@@ -23,7 +24,8 @@ export default async function AdminProducts() {
   const { data: products } = await sb.from('products').select('*').order('created_at')
   return (
     <>
-      <div className="row"><h1>Products</h1><Link className="btn sm" href="/admin">Orders</Link></div>
+      <h1>Products</h1>
+      <AdminTabs on="products" />
       <form className="card p f" action={saveProduct} style={{ marginBottom: 16 }}>
         <h3>Add product</h3>
         <select name="category_id" aria-label="Category">{cats?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>

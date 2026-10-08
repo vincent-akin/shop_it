@@ -15,8 +15,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const inApp = ((await headers()).get('user-agent') ?? '').includes('ShopItApp')   // set by the mobile app wrapper
   const sb = await createClient()
   const { data: { user } } = await sb.auth.getUser()
-  const isAdmin = user ? (await sb.from('profiles').select('role').eq('id', user.id).single()).data?.role === 'admin' : false
-  const name = user?.user_metadata?.full_name?.split(' ')[0]
+  const prof = user ? (await sb.from('profiles').select('role,full_name,avatar_url').eq('id', user.id).single()).data : null
+  const isAdmin = prof?.role === 'admin'
+  const name = (prof?.full_name || user?.user_metadata?.full_name)?.split(' ')[0]
+  const avatar = prof?.avatar_url || user?.user_metadata?.avatar_url
+  let active = 0, recent: any[] = []        // for admins these are the shop's orders; for customers, their own
+  if (user) {
+    const a = await sb.from('orders').select('id', { count: 'exact', head: true }).in('status', ['pending', 'paid', 'processing', 'shipped'])
+    const r = await sb.from('orders').select('order_number,status,total_kobo,created_at,order_items(name)').order('created_at', { ascending: false }).limit(4)
+    active = a.count ?? 0; recent = r.data ?? []
+  }
   return (
     <html lang="en" suppressHydrationWarning>
       <head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /><meta name="theme-color" content="#f9735b" /><script dangerouslySetInnerHTML={{ __html: themeInit }} /></head>
@@ -32,7 +40,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <Link className="on" href="/" title="Home"><i>🏠</i><span>Home</span></Link>
                 <Link href="/#shop" title="Products"><i>🛍️</i><span>Products</span></Link>
                 <Link href="/orders" title="My orders"><i>📦</i><span>My orders</span></Link>
-                {isAdmin && <Link href="/admin" title="Admin"><i>⚙️</i><span>Admin</span></Link>}
+                {isAdmin && <Link href="/admin" title="Dashboard"><i>📊</i><span>Dashboard</span></Link>}
+                <a href="https://wa.me/2349068877567" target="_blank" rel="noopener noreferrer" title="Messages"><i>💬</i><span>Messages</span></a>
+                <Link href="/settings" title="Settings"><i>⚙️</i><span>Settings</span></Link>
               </nav>
               <div className="promo">🚚<p>Free delivery on orders above ₦150,000</p>
                 {user ? <form action="/auth/signout" method="post"><button className="btn sm">Sign out</button></form> : !inApp && <a className="btn sm" href="/auth/signin">Sign in</a>}
@@ -40,7 +50,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <ThemeToggle />
             </aside>
             <main>{children}</main>
-            <CartPanel name={name} email={user?.email} online={!!process.env.PAYSTACK_SECRET_KEY} />
+            <CartPanel name={name} email={user?.email} online={!!process.env.PAYSTACK_SECRET_KEY} avatar={avatar} active={active} recent={recent} bellHref={isAdmin ? '/admin' : '/orders'} />
           </div>
           <Footer signedIn={!!user} inApp={inApp} />
           <TabBar />
